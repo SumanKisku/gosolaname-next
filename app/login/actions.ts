@@ -25,12 +25,10 @@ export async function login(formData: FormData) {
 
 export async function signInWithGoogle() {
   const supabase = createClient();
-  console.log("Env", process.env.NODE_ENV);
-
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: 'http://localhost:3000/auth/callback',
+      redirectTo: process.env.NODE_ENV === 'development' ? 'http://localhost:3000/auth/callback' : `${process.env.ORIGIN}/auth/callback`,
       queryParams: {
         access_type: 'offline',
         prompt: 'consent',
