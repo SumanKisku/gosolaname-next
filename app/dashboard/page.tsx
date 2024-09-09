@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 
 import { createClient } from '@/utils/supabase/server'
-import { logout } from '../logout/actions'
+import { logout } from '../(authentication)/logout/actions'
 
 export default async function DashboardPage() {
   const supabase = createClient()
@@ -19,5 +19,4 @@ export default async function DashboardPage() {
       </form>
     </div>
   )
-
 }
