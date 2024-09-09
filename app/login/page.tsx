@@ -1,6 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 import Link from 'next/link'
-import { login, signInWithGithub, signInWithGoogle } from './actions'
+import { login, signInWithGoogle } from './actions'
 import { redirect } from 'next/navigation';
 import { Metadata } from 'next';
 
@@ -21,7 +21,7 @@ export default async function LoginPage() {
       <form className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md space-y-6">
         {/* Header */}
         <h2 className="text-2xl font-bold text-gray-800 text-center mb-6">Log In</h2>
-        <p className="text-gray-600 text-center mb-6">Please log in to your account or don't have an account
+        <p className="text-gray-600 text-center mb-6">Please log in to your account or don&apos;t have an account
           <Link className='pl-1 text-indigo-600' href={'/signup'}>Sign Up</Link>
         </p>
 
@@ -60,13 +60,8 @@ export default async function LoginPage() {
           </button>
           <button
             type="submit"
-            formAction={signInWithGithub}
-            className="w-full bg-slate-600 text-white py-2 px-4 rounded-lg font-semibold transition duration-300 hover:bg-indigo-700"
-          >Github</button>
-          <button
-            type="submit"
             formAction={signInWithGoogle}
-            className="w-full bg-orange-600 text-white py-2 px-4 rounded-lg font-semibold transition duration-300 hover:bg-indigo-700"
+            className="w-full bg-red-800 text-white py-2 px-4 rounded-lg font-semibold transition duration-300 hover:bg-indigo-700"
           >Google</button>
 
         </div>

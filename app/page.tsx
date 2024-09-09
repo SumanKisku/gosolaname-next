@@ -1,6 +1,16 @@
+import { createClient } from "@/utils/supabase/server";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = createClient();
+
+  const { data, error } = await supabase.auth.getUser();
+
+  if (!error && data?.user) {
+    redirect('/dashboard')
+  }
+
   return (
     <main>
       <section className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-20">
@@ -26,7 +36,7 @@ export default function Home() {
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.383 0 0 5.383 0 12s5.383 12 12 12 12-5.383 12-12S18.617 0 12 0zm0 22.029c-5.522 0-10.029-4.508-10.029-10.029S6.478 1.971 12 1.971 22.029 6.478 22.029 12 17.522 22.029 12 22.029zm0-18.058C7.729 3.971 3.971 7.729 3.971 12S7.729 20.029 12 20.029 20.029 16.271 20.029 12 16.271 3.971 12 3.971z" /><path d="M16.657 11.414a2 2 0 11-2.828-2.828 2 2 0 012.828 2.828z" /></svg>
               </div>
               <h3 className="text-2xl font-bold mb-4">Low Fees</h3>
-              <p>Maximize the impact of every donation with Solana's minimal transaction fees.</p>
+              <p>Maximize the impact of every donation with Solana&apos;s minimal transaction fees.</p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-lg">
               <div className="text-indigo-600 mb-4">
