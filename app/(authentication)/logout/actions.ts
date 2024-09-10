@@ -14,7 +14,7 @@ export async function logout() {
   await supabase.auth.signOut({ scope: 'local' })
 
   revalidatePath('/', 'layout')
-  redirect('/signin')
+  redirect('/')
 }
 
 
