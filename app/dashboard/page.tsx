@@ -1,10 +1,10 @@
 import { redirect } from 'next/navigation'
 
 import { createClient } from '@/utils/supabase/server'
-import { logout } from '../(authentication)/logout/actions'
 import NavBar from '@/components/NavBar'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import Campaigns from '@/components/Campaings'
 
 export default async function DashboardPage() {
   const supabase = createClient()
@@ -17,12 +17,15 @@ export default async function DashboardPage() {
   return (
     <div>
       <NavBar initialUser={data.user} />
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center mt-3">
         <Link href='/dashboard/create-campaign'>
           <Button size="lg">
             Create Campaign
           </Button>
         </Link>
+      </div>
+      <div>
+        <Campaigns />
       </div>
     </div>
   )

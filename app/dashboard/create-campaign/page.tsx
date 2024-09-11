@@ -23,8 +23,8 @@ import { createClient } from '@/utils/supabase/client'
 import { redirect } from 'next/navigation'
 import { User } from '@supabase/supabase-js'
 import { Skeleton } from '@/components/ui/skeleton'
-
-const formSchema = z.object({
+import { useRouter } from 'next/navigation'
+const campaignSchema = z.object({
   title: z.string().min(2, {
     message: "Title must be at least 2 characters.",
   }).max(100, {
@@ -43,36 +43,51 @@ const formSchema = z.object({
   }),
 })
 
+export type Campaign = z.infer<typeof campaignSchema>
+
 export default function FundraisingForm() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [user, setUser] = useState<null | User>(null);
   const [loaded, setLoaded] = useState(false);
+  const router = useRouter()
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<Campaign>({
+    resolver: zodResolver(campaignSchema),
     defaultValues: {
-      title: "",
-      description: "",
-      fundingGoal: "",
-      walletAddress: "",
+      title: "Red Team",
+      description: "Solana supports only one address or public key format (pubkey). Address is a base58-encoded string of 32-44 characters. Basic verification of the Solana address can be done via regular expression: [1-9A-HJ-NP-Za-km-z]{32,44}.",
+      fundingGoal: "5",
+      walletAddress: "7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV",
     },
   })
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  const supabase = createClient()
+  async function onSubmit(values: Campaign) {
     setIsSubmitting(true)
     // Simulate API call
-    setTimeout(() => {
-      console.log(values)
-      toast({
-        title: "Campaign Created!",
-        description: "Your fundraising campaign has been successfully created.",
-      })
-      setIsSubmitting(false)
-      form.reset()
-    },)
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { error } = await supabase.from("campaigns").insert({
+        user_id: user.id,
+        title: values.title,
+        description: values.description,
+        fundingGoal: values.fundingGoal,
+        walletAddress: values.walletAddress
+      });
+
+      if (!error) {
+        toast({
+          title: "Campaign Created!",
+          description: "Your fundraising campaign has been successfully created.",
+        })
+      }
+    }
+    setIsSubmitting(false)
+    form.reset()
+    router.push('/dashboard')
   }
-  const supabase = createClient()
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -89,7 +104,7 @@ export default function FundraisingForm() {
     };
 
     fetchData();
-  }, []);
+  }, [supabase.auth]);
 
   return (
     <>
