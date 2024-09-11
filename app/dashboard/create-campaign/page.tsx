@@ -24,6 +24,7 @@ import { redirect } from 'next/navigation'
 import { User } from '@supabase/supabase-js'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useRouter } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 const campaignSchema = z.object({
   title: z.string().min(2, {
     message: "Title must be at least 2 characters.",
@@ -85,6 +86,7 @@ export default function FundraisingForm() {
     }
     setIsSubmitting(false)
     form.reset()
+    revalidatePath("/dashboard")
     router.push('/dashboard')
   }
 
