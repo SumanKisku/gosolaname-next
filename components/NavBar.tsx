@@ -7,7 +7,7 @@ import { createClient } from '@/utils/supabase/client'
 import { User } from '@supabase/supabase-js'
 import { logout } from '@/app/(authentication)/logout/actions'
 
-export default function NavBar({ initialUser }: { initialUser: User }) {
+export default function NavBar({ initialUser }: { initialUser: User | null }) {
   const [user, setUser] = useState<User | null>(initialUser)
 
   useEffect(() => {
@@ -33,19 +33,17 @@ export default function NavBar({ initialUser }: { initialUser: User }) {
       // await supabase.auth.signOut()
       // setUser(null)
       logout();
-
     } catch (err) {
       console.log(err);
-
     }
   }
   return (
     <nav className="bg-white border-b border-gray-200 py-4">
       <div className="container mx-auto flex justify-between items-center">
         {/* Logo */}
-        <Link href="/" className="text-2xl font-bold text-indigo-600">
+        <h1 className="text-2xl font-bold text-indigo-600">
           GoSolanaMe
-        </Link>
+        </h1>
 
         {/* Auth Details */}
         <div>

@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { logout } from '../(authentication)/logout/actions'
 import NavBar from '@/components/NavBar'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 
 export default async function DashboardPage() {
   const supabase = createClient()
@@ -15,10 +17,13 @@ export default async function DashboardPage() {
   return (
     <div>
       <NavBar initialUser={data.user} />
-      <p>Hello {data.user.email}</p>
-      <form action={logout}>
-        <button>Sign out</button>
-      </form>
+      <div className="flex justify-center items-center h-screen">
+        <Link href='/dashboard/create-campaign'>
+          <Button size="lg">
+            Create Campaign
+          </Button>
+        </Link>
+      </div>
     </div>
   )
 }
