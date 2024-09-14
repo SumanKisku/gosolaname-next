@@ -2,7 +2,7 @@ import { createClient } from "@/utils/supabase/server"
 import { Campaign } from "@/app/dashboard/create-campaign/page";
 import CampaignCard from "./CampaignCard";
 
-type ExtendedCampaign = Campaign & {
+export type ExtendedCampaign = Campaign & {
   id: string;
   created_at: string;
   updated_at: string;
@@ -15,8 +15,7 @@ export default async function Campaigns() {
     throw error
   }
   const { data } = await supabase.from("campaigns").select("*").eq('user_id', user?.id)
-  data?.forEach(camp => console.log(camp))
-  return <div>
+  return <div className="mx-5 flex gap-2 w-full flex-wrap">
     {data?.map((campaign: ExtendedCampaign) => <CampaignCard key={campaign.id} campaign={campaign} />)}
   </div>
 

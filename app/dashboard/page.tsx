@@ -17,14 +17,14 @@ export default async function DashboardPage() {
   return (
     <div>
       <NavBar initialUser={data.user} />
-      <div className="flex justify-center items-center mt-3">
+      <div className="flex justify-center items-center mt-20">
         <Link href='/dashboard/create-campaign'>
           <Button size="lg">
             Create Campaign
           </Button>
         </Link>
       </div>
-      <div>
+      <div className='flex justify-center'>
         <Campaigns />
       </div>
     </div>

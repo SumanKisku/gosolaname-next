@@ -26,44 +26,42 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useRouter } from 'next/navigation'
 import { campaignSchema } from '@/schemas'
 
+type Campaign = z.infer<typeof campaignSchema>
 
-export type Campaign = z.infer<typeof campaignSchema>
-
-export default function FundraisingForm() {
+export default function FundraisingForm({ params }: { params: { id: string } }) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [user, setUser] = useState<null | User>(null);
   const [loaded, setLoaded] = useState(false);
   const router = useRouter()
+  const supabase = createClient()
 
   const form = useForm<Campaign>({
     resolver: zodResolver(campaignSchema),
     defaultValues: {
-      title: "Red Team",
-      description: "Solana supports only one address or public key format (pubkey). Address is a base58-encoded string of 32-44 characters. Basic verification of the Solana address can be done via regular expression: [1-9A-HJ-NP-Za-km-z]{32,44}.",
-      fundingGoal: 5,
-      walletAddress: "7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV",
+      title: "",
+      description: "",
+      fundingGoal: 0,
+      walletAddress: "",
     },
   })
 
-  const supabase = createClient()
   async function onSubmit(values: Campaign) {
     setIsSubmitting(true)
     // Simulate API call
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const { error } = await supabase.from("campaigns").insert({
-        user_id: user.id,
+      const { error } = await supabase.from("campaigns").update({
         title: values.title,
         description: values.description,
         fundingGoal: values.fundingGoal,
         walletAddress: values.walletAddress
-      });
+      }).eq('id', params.id);
 
       if (!error) {
         toast({
-          title: "Campaign Created!",
-          description: "Your fundraising campaign has been successfully created.",
+          title: "Campaign updated!",
+          description: "Your fundraising campaign has been successfully updated.",
         })
       }
     }
@@ -89,9 +87,16 @@ export default function FundraisingForm() {
         setLoaded(true); // Data has finished loading
       }
     };
+    const fetchCampaign = async (id: string) => {
+      const data = await supabase.from("campaigns").select().eq('id', id);
+      if (data && data.data) {
+        form.reset(data?.data[0])
+      }
+    }
 
     fetchData();
-  }, [supabase.auth]);
+    fetchCampaign(params.id);
+  }, [supabase.auth, form, params.id, supabase]);
 
   return (
     <>
@@ -99,7 +104,7 @@ export default function FundraisingForm() {
         <NavBar initialUser={user} /> : <Skeleton className="h-16 w-full"></Skeleton>
       }
       <div className="max-w-md mt-20 mx-auto p-6 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold mb-6">Start a Fundraising Campaign</h1>
+        <h1 className="text-2xl font-bold mb-6">Edit your campaign {params.id}</h1>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
@@ -145,7 +150,7 @@ export default function FundraisingForm() {
                 <FormItem>
                   <FormLabel>Funding Goal (SOL)</FormLabel>
                   <FormControl>
-                    <Input type="number" step="0.01" min="1" placeholder="Enter funding goal in SOL" {...field} />
+                    <Input type="number" step="0.01" min="0" placeholder="Enter funding goal in SOL" {...field} />
                   </FormControl>
                   <FormDescription>
                     Set your fundraising target in Solana (SOL).
@@ -180,3 +185,10 @@ export default function FundraisingForm() {
     </>
   )
 }
+// fetch user
+// if user logged in
+// fetch campaign using id
+// render form according to the fetced campaign with useState hook
+// change necessary fields
+// send it to supabase
+//
