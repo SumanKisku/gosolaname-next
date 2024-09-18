@@ -50,9 +50,13 @@ export default function NavBar({ initialUser }: { initialUser: User | null }) {
           {user ? (
             <div className="flex items-center space-x-4">
               <span className="text-gray-600">Hello, {user.email}</span>
+              <Link href="/campaigns" className="inline-block bg-white text-indigo-600 py-3 px-6 rounded-lg font-semibold text-lg transition duration-300 hover:bg-gray-100">
+                Campaigns
+              </Link>
               <Link href="/dashboard" className="text-indigo-600 hover:underline">
                 Dashboard
               </Link>
+
               <button
                 onClick={handleLogout}
                 className="text-gray-600 hover:text-red-600 transition"
