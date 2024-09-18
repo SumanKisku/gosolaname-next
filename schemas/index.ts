@@ -13,6 +13,7 @@ export const campaignSchema = z.object({
   walletAddress: z.string().regex(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/, {
     message: "Please enter a valid Solana wallet address.",
   }),
+  coverImage: z.string().url().optional(),
 })
 
 

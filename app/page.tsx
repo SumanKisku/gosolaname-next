@@ -17,7 +17,10 @@ export default async function Home() {
         <div className="container mx-auto px-6 text-center">
           <h1 className="text-4xl md:text-5xl font-bold">Empower Your Cause with Solana Donations</h1>
           <p className="mt-4 text-lg md:text-xl">Accept fast, secure, and low-fee donations with the power of Solana blockchain.</p>
-          <Link href="/signup" className="mt-8 inline-block bg-white text-indigo-600 py-3 px-6 rounded-lg font-semibold text-lg transition duration-300 hover:bg-gray-100">Get Started</Link>
+          <div className="flex flex-row gap-4 justify-center">
+            <Link href="/signup" className="mt-8 inline-block bg-white text-indigo-600 py-3 px-6 rounded-lg font-semibold text-lg transition duration-300 hover:bg-gray-100">Get Started</Link>
+            <Link href="/campaigns" className="mt-8 inline-block bg-indigo-600 text-white py-3 px-6 rounded-lg font-semibold text-lg transition duration-300 hover:bg-white hover:text-indigo-600">See Campaigns</Link>
+          </div>
         </div>
       </section>
 

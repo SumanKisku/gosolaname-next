@@ -11,6 +11,9 @@ export type ExtendedCampaign = Campaign & {
 export default async function Campaigns() {
   const supabase = createClient()
   const { data: { user }, error } = await supabase.auth.getUser();
+  // const { data: { session } } = await supabase.auth.getSession();
+  // console.log("session", session?.access_token);
+
   if (error) {
     throw error
   }

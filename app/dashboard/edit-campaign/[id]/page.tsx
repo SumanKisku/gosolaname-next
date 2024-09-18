@@ -43,6 +43,7 @@ export default function FundraisingForm({ params }: { params: { id: string } }) 
       description: "",
       fundingGoal: 0,
       walletAddress: "",
+      coverImage: ""
     },
   })
 
@@ -104,7 +105,7 @@ export default function FundraisingForm({ params }: { params: { id: string } }) 
         <NavBar initialUser={user} /> : <Skeleton className="h-16 w-full"></Skeleton>
       }
       <div className="max-w-md mt-20 mx-auto p-6 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold mb-6">Edit your campaign {params.id}</h1>
+        <h1 className="text-2xl font-bold mb-6">Edit your campaign</h1>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
@@ -176,7 +177,7 @@ export default function FundraisingForm({ params }: { params: { id: string } }) 
               )}
             />
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Creating Campaign..." : "Create Campaign"}
+              {isSubmitting ? "Updating Campaign..." : "Update Campaign"}
             </Button>
           </form>
         </Form>

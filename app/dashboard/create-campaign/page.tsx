@@ -1,103 +1,126 @@
-'use client'
+"use client"
 
-import { useEffect, useState } from 'react'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import * as z from 'zod'
-import { Button } from "@/components/ui/button"
+import { useEffect, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { useToast } from '@/hooks/use-toast'
-import { Toaster } from '@/components/ui/toaster'
-import NavBar from '@/components/NavBar'
-import { createClient } from '@/utils/supabase/client'
-import { redirect } from 'next/navigation'
-import { User } from '@supabase/supabase-js'
-import { Skeleton } from '@/components/ui/skeleton'
-import { useRouter } from 'next/navigation'
-import { campaignSchema } from '@/schemas'
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
+import NavBar from "@/components/NavBar";
+import { createClient } from "@/utils/supabase/client";
+import { redirect } from "next/navigation";
+import { User } from "@supabase/supabase-js";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useRouter } from "next/navigation";
+import { campaignSchema } from "@/schemas";
+import UploadBox from "@/app/upload/UploadBox";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { useEdgeStore } from "@/lib/edgestore";
+import Image from "next/image";
 
-
-export type Campaign = z.infer<typeof campaignSchema>
+export type Campaign = z.infer<typeof campaignSchema>;
 
 export default function FundraisingForm() {
   const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [user, setUser] = useState<null | User>(null);
   const [loaded, setLoaded] = useState(false);
-  const router = useRouter()
+  const [coverImgUrl, setCoverImgUrl] = useState("");
+  const router = useRouter();
+  const { edgestore } = useEdgeStore();
+  const setImgUrl = (url: string) => {
+    setCoverImgUrl(url)
+  }
 
   const form = useForm<Campaign>({
     resolver: zodResolver(campaignSchema),
     defaultValues: {
-      title: "Red Team",
-      description: "Solana supports only one address or public key format (pubkey). Address is a base58-encoded string of 32-44 characters. Basic verification of the Solana address can be done via regular expression: [1-9A-HJ-NP-Za-km-z]{32,44}.",
-      fundingGoal: 5,
-      walletAddress: "7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV",
+      title: "",
+      description: "",
+      fundingGoal: 0,
+      walletAddress: "",
+      coverImage: "",
     },
-  })
+  });
 
-  const supabase = createClient()
+  const supabase = createClient();
+
   async function onSubmit(values: Campaign) {
-    setIsSubmitting(true)
-    // Simulate API call
-    const { data: { user } } = await supabase.auth.getUser();
+    setIsSubmitting(true);
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     if (user) {
       const { error } = await supabase.from("campaigns").insert({
         user_id: user.id,
         title: values.title,
         description: values.description,
         fundingGoal: values.fundingGoal,
-        walletAddress: values.walletAddress
+        walletAddress: values.walletAddress,
+        coverImage: coverImgUrl, // Use the uploaded image URL
       });
 
       if (!error) {
+        await edgestore.publicFiles.confirmUpload({
+          url: coverImgUrl,
+        });
         toast({
           title: "Campaign Created!",
           description: "Your fundraising campaign has been successfully created.",
-        })
+        });
+        form.reset();
+        router.push("/dashboard");
       }
     }
-    setIsSubmitting(false)
-    form.reset()
-    router.push('/dashboard')
-    await fetch('/api/revalidate', {
-      method: 'GET'
-    })
+    setIsSubmitting(false);
   }
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data, error } = await supabase.auth.getUser()
+        const { data, error } = await supabase.auth.getUser();
         if (error || !data?.user) {
-          redirect('/login')
+          redirect("/login");
         }
         setUser(data.user);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
       } finally {
-        setLoaded(true); // Data has finished loading
+        setLoaded(true);
       }
     };
 
     fetchData();
   }, [supabase.auth]);
 
+  useEffect(() => {
+    form.setValue("coverImage", coverImgUrl);
+  }, [coverImgUrl, form]);
+
   return (
     <>
-      {loaded ?
-        <NavBar initialUser={user} /> : <Skeleton className="h-16 w-full"></Skeleton>
-      }
+      {loaded ? (
+        <NavBar initialUser={user} />
+      ) : (
+        <Skeleton className="h-16 w-full"></Skeleton>
+      )}
       <div className="max-w-md mt-20 mx-auto p-6 bg-white rounded-lg shadow-md">
         <h1 className="text-2xl font-bold mb-6">Start a Fundraising Campaign</h1>
         <Form {...form}>
@@ -111,9 +134,6 @@ export default function FundraisingForm() {
                   <FormControl>
                     <Input placeholder="Enter campaign title" {...field} />
                   </FormControl>
-                  <FormDescription>
-                    Give your campaign a catchy and descriptive title.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -125,15 +145,8 @@ export default function FundraisingForm() {
                 <FormItem>
                   <FormLabel>Campaign Description</FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder="Describe your campaign and its goals"
-                      className="resize-none"
-                      {...field}
-                    />
+                    <Textarea placeholder="Describe your campaign" {...field} />
                   </FormControl>
-                  <FormDescription>
-                    Provide details about your campaign to attract supporters.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -145,11 +158,8 @@ export default function FundraisingForm() {
                 <FormItem>
                   <FormLabel>Funding Goal (SOL)</FormLabel>
                   <FormControl>
-                    <Input type="number" step="0.01" min="1" placeholder="Enter funding goal in SOL" {...field} />
+                    <Input type="number" {...field} />
                   </FormControl>
-                  <FormDescription>
-                    Set your fundraising target in Solana (SOL).
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -163,13 +173,42 @@ export default function FundraisingForm() {
                   <FormControl>
                     <Input placeholder="Enter your Solana wallet address" {...field} />
                   </FormControl>
-                  <FormDescription>
-                    Provide the Solana wallet address where donations will be received.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="coverImage"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cover Image</FormLabel>
+                  <FormControl>
+                    <Input disabled {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {coverImgUrl && (
+              <div className="my-4">
+                <Image
+                  width={320}
+                  height={240}
+                  src={coverImgUrl}
+                  alt="Cover Image Preview"
+                  className="w-full h-40 object-cover rounded-lg shadow-md"
+                />
+              </div>
+            )}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline">Upload Image</Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full">
+                <UploadBox setImgUrl={setImgUrl} />
+              </PopoverContent>
+            </Popover>
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? "Creating Campaign..." : "Create Campaign"}
             </Button>
@@ -178,5 +217,5 @@ export default function FundraisingForm() {
         <Toaster />
       </div>
     </>
-  )
+  );
 }
