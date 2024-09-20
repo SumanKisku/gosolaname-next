@@ -1,4 +1,4 @@
-import CampaignCard from "@/components/CampaignCard";
+import CampaignCard from "@/components/CampaignCardForViewer";
 import { createClient } from "@/utils/supabase/server"
 
 export default async function DashboardPage() {
