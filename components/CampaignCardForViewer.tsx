@@ -1,9 +1,6 @@
-
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Assuming you're using Shadcn's Card component
 import { Campaign } from '@/app/dashboard/create-campaign/page';
-import EditAndDelete from '@/components/EditAndDelete'
 import Image from 'next/image';
 import Link from 'next/link';
 type ExtendedCampaign = Campaign & {
