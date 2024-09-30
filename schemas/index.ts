@@ -10,6 +10,7 @@ export const campaignSchema = z.object({
     message: "Description must be at least 10 characters.",
   }),
   fundingGoal: z.coerce.number(),
+  raisedSol: z.coerce.number(),
   walletAddress: z.string().regex(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/, {
     message: "Please enter a valid Solana wallet address.",
   }),
