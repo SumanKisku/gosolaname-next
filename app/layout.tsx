@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { EdgeStoreProvider } from "@/lib/edgestore";
+import AppWalletProvider from "@/components/AppWalletProvider";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -30,7 +31,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <EdgeStoreProvider>
-          {children}
+          <AppWalletProvider>{children}</AppWalletProvider>
         </EdgeStoreProvider>
       </body>
     </html>

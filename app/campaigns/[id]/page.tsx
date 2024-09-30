@@ -1,55 +1,119 @@
 'use client'
-import NavBar from "@/components/NavBar";
-import { Skeleton } from "@/components/ui/skeleton";
 import { campaignSchema } from "@/schemas";
 import { createClient } from "@/utils/supabase/client";
-import { User } from "@supabase/supabase-js";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
+import dynamic from "next/dynamic";
 import Image from "next/image";
-import { redirect } from "next/navigation";
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { z } from "zod";
 
+const WalletMultiButton = dynamic(
+  () => import('@solana/wallet-adapter-react-ui').then((mod) => mod.WalletMultiButton),
+  { ssr: false }
+);
 type Campaign = z.infer<typeof campaignSchema>
 
 export default function IndividualCampaignPage({ params }: { params: { id: string } }) {
   const supabase = createClient();
-  const [user, setUser] = useState<null | User>(null);
-  const [loaded, setLoaded] = useState(false);
   const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [recipient, setRecipient] = useState('');
+  const [amount, setAmount] = useState('');
+  const [status, setStatus] = useState('');
+  const { publicKey, sendTransaction } = useWallet();
+  const { connection } = useConnection();
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const { data, error } = await supabase.auth.getUser()
-        if (error || !data?.user) {
-          redirect('/login')
-        }
-        setUser(data.user);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setLoaded(true); // Data has finished loading
-      }
-    };
     const fetchCampaign = async (id: string) => {
       const data = await supabase.from("campaigns").select().eq('id', id);
       if (data && data.data) {
         console.log(data?.data);
         setCampaign(data?.data[0])
+        setRecipient(data?.data[0].walletAddress);
+        console.log("MY address", data?.data[0].walletAddress);
+
       }
     }
 
-    fetchData();
     fetchCampaign(params.id);
   }, [supabase.auth, params.id, supabase]);
+
+
+  const handleTransfer = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setStatus('');
+
+    if (!publicKey) {
+      setStatus('Please connect your wallet first.');
+      return;
+    }
+
+    try {
+      // Convert recipient input to a public key and amount to lamports
+      const recipientPubKey = new PublicKey(recipient);
+      const lamports = parseFloat(amount) * LAMPORTS_PER_SOL;
+
+      // Create the transaction for transferring SOL
+      const transaction = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: publicKey,
+          toPubkey: recipientPubKey,
+          lamports,
+        })
+      );
+
+      // Send the transaction
+      const signature = await sendTransaction(transaction, connection);
+      await connection.confirmTransaction(signature, 'confirmed');
+
+      // Fetch the current campaign data from the database
+      const { data: campaign, error: fetchError } = await supabase
+        .from('campaigns')
+        .select('raisedSol')
+        .eq('id', params.id)
+        .single();
+      console.log("Raised solana", typeof campaign?.raisedSol);
+
+
+      if (fetchError || !campaign) {
+        console.error("Error fetching campaign data:", fetchError);
+        return;
+      }
+
+      // Calculate the new raisedSol amount (make sure to handle NaN)
+      const updatedRaisedSol = Number(campaign.raisedSol) + Number(amount);
+
+      if (isNaN(updatedRaisedSol)) {
+        setStatus('Invalid amount. Please enter a valid number.');
+        return;
+      }
+
+      // Update the campaign's raisedSol in the database
+      const { error: updateError } = await supabase
+        .from('campaigns')
+        .update({ 'raisedSol': updatedRaisedSol })
+        .eq('id', params.id);
+
+      if (updateError) {
+        console.error("Error updating campaign data:", updateError);
+        return;
+      }
+
+      // Set success status
+      setStatus(`Transfer successful! Signature: ${signature}`);
+    } catch (error) {
+      console.log("Error processing transfer:", error);
+      setStatus('Error processing the transaction.');
+    }
+  };
 
   if (!campaign) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
   return <>
-    {loaded ?
-      <NavBar initialUser={user} /> : <Skeleton className="h-16 w-full"></Skeleton>
-    }
+    <nav className="flex justify-end p-2">
+      <WalletMultiButton style={{}} />
+    </nav>
     {campaign &&
       // write a beautiful here styling with tailwind css
 
@@ -73,12 +137,41 @@ export default function IndividualCampaignPage({ params }: { params: { id: strin
             <p className="text-lg font-semibold text-indigo-600">
               Goal: {campaign.fundingGoal} SOL
             </p>
+            <p className="text-lg font-semibold text-indigo-600">
+              Raised: {campaign.raisedSol} SOL
+            </p>
+            <p className="text-lg font-semibold text-indigo-600">
+              Reciepent Wallet: <span className="text-sm text-black">{campaign.walletAddress}
+              </span>
+            </p>
+
             {/* Button to donate or support */}
-            <button className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all">
-              Support this campaign
-            </button>
+
+            <form onSubmit={handleTransfer}>
+              <div className="mb-4">
+                <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
+                  Amount (SOL)
+                </label>
+                <input
+                  id="amount"
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="Enter amount in SOL"
+                  step="0.000000001"
+                  min="0"
+                  required
+                />
+              </div>
+              <button type="submit" className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all">Send Support</button>
+            </form>
           </div>
         </div>
+        {status && (
+          <div className="mt-4">
+            <div>{status}</div>
+          </div>
+        )}
       </div>
     }
   </>
