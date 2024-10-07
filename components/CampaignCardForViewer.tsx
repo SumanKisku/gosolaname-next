@@ -14,18 +14,18 @@ interface CampaignCardProps {
 
 const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
   return (
-    <Card className="max-w-md my-4 bg-white shadow-md rounded-lg hover:shadow-lg transition-shadow duration-300">
+    <Card className="max-w-md my-4 bg-gray-950 shadow-md rounded-lg hover:shadow-lg transition-shadow duration-300">
       <CardHeader className='w-full flex flex-row space-between'>
         <Link href={`/campaigns/${campaign.id}`}>
-          <CardTitle className="text-xl font-bold">{campaign.title}</CardTitle>
+          <CardTitle className="text-xl font-bold text-slate-100">{campaign.title}</CardTitle>
         </Link>
       </CardHeader>
       <CardContent>
         <p className="text-sm text-gray-700 mb-2">{campaign.description}</p>
-        <p className="text-sm text-gray-600"><span className='font-bold text-black'>Solana Address:</span> {campaign.walletAddress}</p>
-        <p className="text-sm text-gray-600"><span className='font-bold text-black'>Target: </span>{campaign.fundingGoal} SOL</p>
-        <p className="text-sm text-gray-600"><span className='font-bold text-black'>Raised: </span>{`${(campaign.fundingGoal / 1.5).toFixed(2)}`} SOL</p>
-        <p className="text-xs text-gray-500"><span className='font-bold text-black'>Created at: </span>{new Date(campaign.created_at).toLocaleDateString()}</p>
+        <p className="text-sm text-gray-600"><span className='font-bold text-slate-100'>Solana Address:</span> {campaign.walletAddress}</p>
+        <p className="text-sm text-gray-600"><span className='font-bold text-slate-100'>Target: </span>{campaign.fundingGoal} SOL</p>
+        <p className="text-sm text-gray-600"><span className='font-bold text-slate-100'>Raised: </span>{`${(campaign.fundingGoal / 1.5).toFixed(2)}`} SOL</p>
+        <p className="text-xs text-gray-500"><span className='font-bold text-slate-100'>Created at: </span>{new Date(campaign.created_at).toLocaleDateString()}</p>
         <div className="flex justify-center p-2">
           <Image src={`${campaign.coverImage}`} alt="Image" width="320" height="240" />
         </div>
