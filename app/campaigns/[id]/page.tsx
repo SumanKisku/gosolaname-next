@@ -9,6 +9,12 @@ import { FormEvent, useEffect, useState } from "react";
 import { z } from "zod";
 import Confetti from 'react-confetti'
 
+import {
+  FacebookShareButton,
+  FacebookIcon,
+  TwitterShareButton,
+  TwitterIcon
+} from "react-share";
 const WalletMultiButton = dynamic(
   () => import('@solana/wallet-adapter-react-ui').then((mod) => mod.WalletMultiButton),
   { ssr: false }
@@ -150,6 +156,17 @@ export default function IndividualCampaignPage({ params }: { params: { id: strin
                   Send Support
                 </button>
               </form>
+              <div>
+                <h3 className="text-white font-bold">Spread the word</h3>
+                <div className="flex gap-2">
+                  <FacebookShareButton url={window?.location?.href}>
+                    <FacebookIcon round size={32} />
+                  </FacebookShareButton>
+                  <TwitterShareButton url={window?.location?.href}>
+                    <TwitterIcon round size={32} />
+                  </TwitterShareButton>
+                </div>
+              </div>
             </div>
           </div>
           {status && (
@@ -160,8 +177,9 @@ export default function IndividualCampaignPage({ params }: { params: { id: strin
               />
             </div>
           )}
-        </div>
-      )}
+        </div >
+      )
+      }
     </>
   );
 }
